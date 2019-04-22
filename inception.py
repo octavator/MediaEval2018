@@ -3,13 +3,14 @@ import numpy as np
 import pandas as pd
 import pyprind
 
-def getInceptionV3(df):
+def getInceptionV3(df, max_vect_size):
 
   # ## Inception Features
   
   inception_path = '../dev-set/dev-set/dev-set_features/InceptionV3/'
   pbar = pyprind.ProgBar(len(df['video']), title='Gathering ResNet output')
-  values = np.zeros(len(df['video']), dtype=object)
+  # values = np.zeros(len(df['video']), dtype=object)
+  values = []
 
   for i, video in enumerate(df["video"]):
     video_name = video.strip(".webm")
@@ -19,10 +20,9 @@ def getInceptionV3(df):
     inceptions_values = open(example_inception_path, 'r').read()
     sample_inception_dictionary = parse_inception_feature(inceptions_values)
     
-    # Lets convert this to a vector with 1000 elements
-    # print("should sum up to 1: ", sum(expand_inception_feature(sample_inception_dictionary)))
-    value_to_save = expand_inception_feature(sample_inception_dictionary)
-    values[i] = value_to_save
+    value_to_save = expand_inception_feature(sample_inception_dictionary, max_vect_size)
+    values.append(value_to_save)
+    # values[i] = value_to_save
     pbar.update()
 
   # We will store the data in a dictionary, where they keys are the names of the files.
@@ -35,9 +35,11 @@ def parse_inception_feature(dataPath):
     pairs = [i.split(':') for i in pairs]
     return {int(k): float(v) for k, v in pairs}
 
-def expand_inception_feature(d):
-  # 1000 = size of inception feature vector
-  feature = np.zeros(1000)
+def expand_inception_feature(d, max_vect_size):
+  # feature = np.zeros(max_vect_size)
+  feature = []
+  for i in range(max_vect_size):
+    feature.append(0)
   for k, v in d.items():
     feature[k] = v
   return feature
