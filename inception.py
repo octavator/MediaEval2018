@@ -1,14 +1,17 @@
 import os
 import numpy as np
 import pandas as pd
+import pyprind
 
 def getInceptionV3(df):
 
   # ## Inception Features
   
-  inception_path = './dev-set/dev-set/dev-set_features/InceptionV3/'
-  values = []
-  for video in df["video"]:
+  inception_path = '../dev-set/dev-set/dev-set_features/InceptionV3/'
+  pbar = pyprind.ProgBar(len(df['video']), title='Gathering ResNet output')
+  values = np.zeros(len(df['video']), dtype=object)
+
+  for i, video in enumerate(df["video"]):
     video_name = video.strip(".webm")
     
     ## take only first frame // Todo : take first & last, or avg of them all etc.
@@ -19,19 +22,13 @@ def getInceptionV3(df):
     # Lets convert this to a vector with 1000 elements
     # print("should sum up to 1: ", sum(expand_inception_feature(sample_inception_dictionary)))
     value_to_save = expand_inception_feature(sample_inception_dictionary)
-    values.append(value_to_save)
+    values[i] = value_to_save
+    pbar.update()
 
   # We will store the data in a dictionary, where they keys are the names of the files.
   # inception_features = pd.DataFrame(expanded_dict).T
   df["inception"] = values
-  print(df.head(10))
-  return []
 
-
-# we will convert the keys using pathlib like this
-#example_inception_path.with_suffix('.webm').name.replace('-0', '')
-
-# Each of these files is a single line, containing mappings from indices to values -> function to parse this into a dictionary
 
 def parse_inception_feature(dataPath):
     pairs = dataPath.strip().split(' ')

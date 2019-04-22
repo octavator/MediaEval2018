@@ -13,10 +13,10 @@ from keras import Sequential
 from keras import layers
 from keras import regularizers
 from sklearn.model_selection import train_test_split
-# import matplotlib.pyplot as plt
+import matplotlib.pyplot as plt
 
 ## custom imports
-# from plots import *
+from plots import *
 from inception import getInceptionV3
 from captions import * 
 
@@ -44,7 +44,14 @@ def getSpearmanCorScore(Y_pred,Y_true):
 
 def train_model(df, oneHotWords):
   Y = df[['short-term_memorability','long-term_memorability']].values
+
+  print("y shape: ", Y.shape)
+  print("y 0: ", Y[0])
+  
   X = oneHotWords
+  X_try = [oneHotWords, df["inception"].values]
+  print("X try 0: ", X[0])
+  print("X shape: ", X.shape)
   X_train, X_test, Y_train, Y_test = train_test_split(X,Y, test_size=0.2, random_state=1)
   nb_iterations = 8
 
@@ -55,7 +62,7 @@ def train_model(df, oneHotWords):
   print("input_shape: ", len(oneHotWords[0]))
   model = Sequential()
   ## TODO: add inception feature, change input_shape ?
-  model.add(layers.Dense(12,activation='relu',kernel_regularizer=regularizers.l2(0.0001), input_shape=(len(oneHotWords[0]),)))
+  model.add(layers.Dense(12,activation='relu',kernel_regularizer=regularizers.l2(0.0001), input_dim=X.shape[1]))
   model.add(layers.Dropout(0.6))
   model.add(layers.Dense(12,activation='relu',kernel_regularizer=regularizers.l2(0.0001)))
   model.add(layers.Dropout(0.5))
@@ -77,24 +84,24 @@ def train_model(df, oneHotWords):
   ##len(loss) == nb_iteration ?
   epochs = range(1,len(loss)+1)
 
-  # plt.plot(epochs,loss,'bo',label='Training loss')
-  # plt.plot(epochs,val_loss,'b',label='Validation loss')
-  # plt.title('Training and validation loss')
-  # plt.xlabel('Epochs')
-  # plt.ylabel('Loss')
-  # plt.legend()
-  # plt.show()
+  plt.plot(epochs,loss,'bo',label='Training loss')
+  plt.plot(epochs,val_loss,'b',label='Validation loss')
+  plt.title('Training and validation loss')
+  plt.xlabel('Epochs')
+  plt.ylabel('Loss')
+  plt.legend()
+  plt.show()
 
-  # plt.figure()
-  # acc = history.history['acc']
-  # val_acc = history.history['val_acc']
-  # plt.plot(epochs, acc, 'bo', label='Training acc')
-  # plt.plot(epochs, val_acc, 'b', label='Validation acc')
-  # plt.title('Training and validation accuracy')
-  # plt.xlabel('Epochs')
-  # plt.ylabel('Acc')
-  # plt.legend()
-  # plt.show()
+  plt.figure()
+  acc = history.history['acc']
+  val_acc = history.history['val_acc']
+  plt.plot(epochs, acc, 'bo', label='Training acc')
+  plt.plot(epochs, val_acc, 'b', label='Validation acc')
+  plt.title('Training and validation accuracy')
+  plt.xlabel('Epochs')
+  plt.ylabel('Acc')
+  plt.legend()
+  plt.show()
 
 
   predictions = model.predict(X_test)
@@ -104,7 +111,7 @@ def train_model(df, oneHotWords):
 
 def main():
   # vidId, short term score, short term annotations, long term score, long term annotation
-  ground_truth_file = './dev-set/dev-set/dev-set_ground-truth.csv'
+  ground_truth_file = '../dev-set/dev-set/dev-set_ground-truth.csv'
   ground_truth = pd.read_csv(ground_truth_file)
 #  ground_truth.describe()
   # drawPlots(ground_truth)
@@ -115,6 +122,7 @@ def main():
   df = getPredAndCaptions(ground_truth, vidCapts)
   getInceptionV3(df)
   oneHotWords = countWordsOccur(df)
+#  df["oneHotCaptions"] = oneHotWords
   print("oneHotWords shape:", oneHotWords.shape)
 
 
